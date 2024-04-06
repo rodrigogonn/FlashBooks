@@ -16,14 +16,12 @@ jobs:
         if: github.ref == 'refs/heads/staging'
         run: |
           echo "POSTGRES_URL=${{ secrets.STAGING_POSTGRES_URL }}" >> $GITHUB_ENV
-          echo "POSTGRES_URL_NON_POOLING=${{ secrets.STAGING_POSTGRES_URL_NON_POOLING }}" >> $GITHUB_ENV
           echo "NODE_ENV=staging" >> $GITHUB_ENV
 
       - name: Setup master variables
         if: github.ref == 'refs/heads/master'
         run: |
           echo "POSTGRES_URL=${{ secrets.PRODUCTION_POSTGRES_URL }}" >> $GITHUB_ENV
-          echo "POSTGRES_URL_NON_POOLING=${{ secrets.PRODUCTION_POSTGRES_URL_NON_POOLING }}" >> $GITHUB_ENV
           echo "NODE_ENV=production" >> $GITHUB_ENV
 
       - name: Setup Node.js
