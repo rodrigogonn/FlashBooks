@@ -11,7 +11,9 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "vercel-build": "echo hello",
-    "migrate": "prisma migrate dev"
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "postgres": "docker-compose up -d"
   },
   "dependencies": {
     "@prisma/client": "^5.11.0",
