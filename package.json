@@ -11,8 +11,9 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "vercel-build": "echo hello",
-    "postinstall": "prisma generate",
+    "postinstall": "yarn prisma:generate && yarn prisma:deploy",
     "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "postgres": "docker-compose up -d"
   },
