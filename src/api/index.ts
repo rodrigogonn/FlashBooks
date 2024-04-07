@@ -6,9 +6,9 @@ import emojis from './emojis';
 
 const router = express.Router();
 
-const prisma = new PrismaClient();
-
 router.get<{}, MessageResponse>('/', async (req, res) => {
+  const prisma = new PrismaClient();
+
   const users = await prisma.user.findMany();
   res.json({
     message: 'API - 👋🌎🌍🌏',
