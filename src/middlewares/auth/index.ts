@@ -26,8 +26,7 @@ export const auth = (
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
     req.userId = decoded.userId;
     next();
-  } catch (error) {
-    console.log('error', error);
+  } catch {
     res.status(400).send({ message: 'Invalid token.' });
   }
 };
