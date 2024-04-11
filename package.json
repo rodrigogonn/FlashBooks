@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "author": "Rodrigo Gonçalves",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "nodemon src/index.ts",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "lint": "eslint --fix src test",
