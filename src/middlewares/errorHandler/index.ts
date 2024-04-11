@@ -1,4 +1,4 @@
-import { env } from 'environment';
+import { env } from '@/environment';
 import { RequestHandler } from 'express';
 
 export const errorHandler =

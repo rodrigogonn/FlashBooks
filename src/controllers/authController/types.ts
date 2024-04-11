@@ -1,4 +1,4 @@
-import MessageResponse from 'interfaces/MessageResponse';
+import MessageResponse from '@/interfaces/MessageResponse';
 
 export interface LoginRequestBody {
   username: string;
