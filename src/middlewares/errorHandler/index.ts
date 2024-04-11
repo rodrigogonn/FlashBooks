@@ -1,5 +1,5 @@
-import { env } from '@/environment';
 import { RequestHandler } from 'express';
+import { env } from '../../environment';
 
 export const errorHandler =
   (fn: RequestHandler): RequestHandler =>

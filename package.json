@@ -1,16 +1,14 @@
 {
   "name": "flash-books",
   "version": "1.0.0",
-  "main": "src/index.ts",
   "author": "Rodrigo Gonçalves",
   "scripts": {
-    "start": "node dist/src/index.js",
+    "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "build": "tsc && tsc-alias",
     "lint": "eslint --fix src test",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "yarn build",
+    "vercel-build": "echo hello",
     "postinstall": "yarn prisma:generate && yarn prisma:deploy",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:generate": "prisma generate",
@@ -48,7 +46,6 @@
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.2"
   }

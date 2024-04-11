@@ -1,8 +1,8 @@
-import { env } from '@/environment';
-import { JwtPayload } from '@/types/jwtPayload.interface';
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { env } from '../../environment';
+import { JwtPayload } from '../../types/jwtPayload.interface';
 import { LoginRequestBody, LoginResponse } from './types';
 
 const prisma = new PrismaClient();

@@ -1,5 +1,5 @@
-import { middlewares } from '@/middlewares';
 import express from 'express';
+import { middlewares } from '../../middlewares';
 
 const router = express.Router();
 

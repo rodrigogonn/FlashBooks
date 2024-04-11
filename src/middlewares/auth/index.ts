@@ -1,8 +1,8 @@
-import { env } from '@/environment';
-import ErrorResponse from '@/interfaces/ErrorResponse';
-import { JwtPayload } from '@/types/jwtPayload.interface';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { env } from '../../environment';
+import ErrorResponse from '../../interfaces/ErrorResponse';
+import { JwtPayload } from '../../types/jwtPayload.interface';
 
 export const auth = (
   req: Request,
