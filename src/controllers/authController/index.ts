@@ -1,37 +1,31 @@
-import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../../environment';
+import { User } from '../../models/user';
 import { JwtPayload } from '../../types/jwtPayload.interface';
 import { LoginRequestBody, LoginResponse } from './types';
-
-const prisma = new PrismaClient();
 
 const login = async (
   req: Request<{}, {}, LoginRequestBody>,
   res: Response<LoginResponse>
 ) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
+  if (!email || !password) {
     return res
       .status(400)
-      .json({ message: 'Username and password are required.' });
+      .json({ message: 'Email and password are required.' });
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      username: username,
-    },
-  });
-
+  const user = await User.findOne({ email });
   if (!user) {
-    return res.status(401).json({ message: 'Invalid username or password.' });
+    return res.status(401).json({ message: 'Invalid email or password.' });
   }
 
+  // @TODO melhorar isso aqui com bcrypt
   const isPasswordValid = password === user.password;
   if (!isPasswordValid) {
-    return res.status(401).json({ message: 'Invalid username or password.' });
+    return res.status(401).json({ message: 'Invalid email or password.' });
   }
 
   const tokenPayload: JwtPayload = {

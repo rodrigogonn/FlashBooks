@@ -76,3 +76,6 @@ typings/
 
 dist
 .vercel
+
+# Databases
+mongo_volume

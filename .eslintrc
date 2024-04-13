@@ -4,6 +4,7 @@
     "jest": true
   },
   "parser": "@typescript-eslint/parser",
+  "ignorePatterns": ["scripts/"],
   "parserOptions": {
     "project": ["./tsconfig.json"]
   },
