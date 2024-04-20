@@ -4,10 +4,10 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import api from './api';
 import { database } from './database';
 import MessageResponse from './interfaces/MessageResponse';
 import { middlewares } from './middlewares';
+import api from './router';
 
 database.connect();
 

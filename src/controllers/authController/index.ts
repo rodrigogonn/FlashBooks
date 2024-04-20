@@ -34,7 +34,7 @@ const login = async (
   // @TODO adicionar expiração do token
   const token = jwt.sign(tokenPayload, env.JWT_SECRET);
 
-  res.json({ token });
+  return res.json({ token });
 };
 
 export const authController = {

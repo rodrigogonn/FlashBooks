@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import { env } from '../../environment';
 import ErrorResponse from '../../interfaces/ErrorResponse';
-import { JwtPayload } from '../../types/jwtPayload.interface';
 
-export const auth = (
+export const adminAuth = (
   req: Request,
   res: Response<ErrorResponse>,
   next: NextFunction
@@ -15,18 +13,18 @@ export const auth = (
     return res.status(401).send({ message: 'No token provided.' });
   }
 
-  const tokenParts = authHeader.split(' ');
-  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+  const authHeaderParts = authHeader.split(' ');
+  if (authHeaderParts.length !== 2 || authHeaderParts[0] !== 'Basic') {
     return res.status(400).send({ message: 'Invalid authorization header.' });
   }
 
-  const token = tokenParts[1];
+  const credentials = Buffer.from(authHeaderParts[1], 'base64').toString(
+    'ascii'
+  );
 
-  try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-    req.userId = decoded.userId;
-    return next();
-  } catch {
+  if (credentials !== env.ADMIN_SECRET) {
     return res.status(400).send({ message: 'Invalid token.' });
   }
+
+  return next();
 };

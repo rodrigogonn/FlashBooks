@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { env } from '../environment';
+import { Book } from '../models/book';
 import { User } from '../models/user';
 
 const connect = async () => {
@@ -8,6 +9,7 @@ const connect = async () => {
     console.log('Conectado ao MongoDB');
 
     await User.createIndexes();
+    await Book.createIndexes();
   } catch (error) {
     console.error('Erro ao conectar ao MongoDB:', error);
     process.exit(1);
