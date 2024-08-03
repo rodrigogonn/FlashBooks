@@ -2,14 +2,32 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../../environment';
 import { User } from '../../models/user';
+import { googleAuthService } from '../../services/googleAuth';
 import { JwtPayload } from '../../types/jwtPayload.interface';
-import { LoginRequestBody, LoginResponse } from './types';
+import { LoginResponse, LoginWithGoogleRequestBody } from './types';
 
-const login = async (
-  req: Request<{}, {}, LoginRequestBody>,
+const loginWithGoogle = async (
+  req: Request<{}, {}, LoginWithGoogleRequestBody>,
   res: Response<LoginResponse>
 ) => {
-  const { email, password } = req.body;
+  const { idToken: googleIdToken } = req.body;
+
+  console.log('googleIdToken', googleIdToken);
+
+  if (!googleIdToken) {
+    return res.status(400).json({ message: 'idToken is required.' });
+  }
+
+  const payload = await googleAuthService.verifyIdToken(googleIdToken);
+
+  if (payload) {
+    return res.json({ message: JSON.stringify(payload) });
+  }
+
+  console.log('payload', payload);
+
+  const email = '',
+    password = '';
 
   if (!email || !password) {
     return res
@@ -38,5 +56,5 @@ const login = async (
 };
 
 export const authController = {
-  login,
+  loginWithGoogle,
 };

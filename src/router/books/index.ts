@@ -1,5 +1,5 @@
 import express from 'express';
-import { booksController } from '../../controllers/booksController';
+import { booksController } from '../../controllers/books';
 import { adminAuth } from '../../middlewares/adminAuth';
 import { errorHandler } from '../../middlewares/errorHandler';
 
