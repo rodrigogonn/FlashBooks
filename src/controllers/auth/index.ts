@@ -26,8 +26,6 @@ const loginWithGoogle = async (
 
   const user = await usersService.findByEmail(payload.email);
   if (user) {
-    console.log('user', user);
-
     tokenPayload = {
       userId: user.id,
       email: user.email,
@@ -39,8 +37,6 @@ const loginWithGoogle = async (
       email: payload.email,
       username: payload.name,
     });
-
-    console.log('newUser', newUser);
 
     tokenPayload = {
       userId: newUser.id,
