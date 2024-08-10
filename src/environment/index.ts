@@ -3,4 +3,5 @@ export const env = {
   ADMIN_SECRET: process.env.ADMIN_SECRET || '',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   MONGODB_URI: process.env.MONGODB_URI || '',
+  GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID || '',
 };

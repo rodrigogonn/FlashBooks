@@ -1,5 +1,5 @@
 export interface CreateUserParams {
-  username: string;
+  googleId: string;
   email: string;
-  password: string;
+  username: string;
 }
