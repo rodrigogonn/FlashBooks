@@ -5,5 +5,6 @@ import { errorHandler } from '../../middlewares/errorHandler';
 const router = express.Router();
 
 router.post('/loginWithGoogle', errorHandler(authController.loginWithGoogle));
+router.post('/admLogin', errorHandler(authController.admLogin));
 
 export default router;

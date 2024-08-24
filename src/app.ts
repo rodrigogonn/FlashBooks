@@ -5,7 +5,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { database } from './database';
-import MessageResponse from './interfaces/MessageResponse';
+import { MessageResponse } from './interfaces/MessageResponse';
 import { middlewares } from './middlewares';
 import api from './router';
 

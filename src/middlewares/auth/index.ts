@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../../environment';
-import ErrorResponse from '../../interfaces/ErrorResponse';
+import { ErrorResponse } from '../../interfaces/ErrorResponse';
 import { JwtPayload } from '../../types/jwtPayload.interface';
 
 export const auth = (
@@ -12,12 +12,16 @@ export const auth = (
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
-    return res.status(401).send({ message: 'No token provided.' });
+    return res
+      .status(401)
+      .send({ success: false, message: 'No token provided.' });
   }
 
   const tokenParts = authHeader.split(' ');
   if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-    return res.status(400).send({ message: 'Invalid authorization header.' });
+    return res
+      .status(401)
+      .send({ success: false, message: 'Invalid authorization header.' });
   }
 
   const token = tokenParts[1];
@@ -27,6 +31,6 @@ export const auth = (
     req.userId = decoded.userId;
     return next();
   } catch {
-    return res.status(400).send({ message: 'Invalid token.' });
+    return res.status(401).send({ success: false, message: 'Invalid token.' });
   }
 };
