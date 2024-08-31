@@ -4,7 +4,7 @@ import { ErrorResponse } from '../../interfaces/ErrorResponse';
 
 export const errorHandler =
   (fn: RequestHandler): RequestHandler =>
-  (req, res: Response<ErrorResponse>, next) => {
+  (req, res: Response<ErrorResponse & { stack: string }>, next) => {
     Promise.resolve(fn(req, res, next)).catch((error) => {
       res.status(500).json({
         success: false,

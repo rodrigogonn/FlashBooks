@@ -5,10 +5,10 @@ import { googleAuthService } from '../../services/googleAuth';
 import { JwtPayload } from '../../types/jwtPayload.interface';
 import { LoginResponse, LoginWithGoogleRequestBody } from './types';
 import { usersService } from '../../services/users';
-import { ApiResponse } from '../../interfaces/ApiResponse';
+import { ApiRequestWithBody, ApiResponse } from '../../interfaces/ApiResponse';
 
 const loginWithGoogle = async (
-  req: Request<{}, {}, LoginWithGoogleRequestBody>,
+  req: ApiRequestWithBody<LoginWithGoogleRequestBody>,
   res: ApiResponse<LoginResponse>
 ) => {
   const { idToken: googleIdToken } = req.body;
@@ -56,10 +56,7 @@ const loginWithGoogle = async (
   return res.json({ success: true, token });
 };
 
-const admLogin = async (
-  req: Request<{}, {}, LoginWithGoogleRequestBody>,
-  res: ApiResponse<LoginResponse>
-) => {
+const admLogin = async (req: Request, res: ApiResponse<LoginResponse>) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {

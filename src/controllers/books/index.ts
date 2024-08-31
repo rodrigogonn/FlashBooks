@@ -1,10 +1,13 @@
-import { Request, Response } from 'express';
-import { Book } from '../../models/book';
-import { CreateBookResponse, GetBookResponse } from './types';
+import { Request } from 'express';
+import {
+  CreateBookResponse,
+  ListNotSyncedParams,
+  ListNotSyncedReturn,
+} from './types';
 import { bookValidation } from './validation';
-import formidable from 'formidable';
+import formidable, { Fields, Files } from 'formidable';
 import { booksService } from '../../services/books';
-import { ApiResponse } from '../../interfaces/ApiResponse';
+import { ApiRequestWithQuery, ApiResponse } from '../../interfaces/ApiResponse';
 
 const create = async (req: Request, res: ApiResponse<CreateBookResponse>) => {
   const form = formidable({
@@ -12,63 +15,74 @@ const create = async (req: Request, res: ApiResponse<CreateBookResponse>) => {
     keepExtensions: true,
   });
 
-  form.parse(req, async (err, fields, files) => {
-    try {
-      if (err) {
-        throw err;
-      }
+  const { error, fields, files } = await new Promise<{
+    error: any;
+    fields: Fields<string>;
+    files: Files<string>;
+  }>((resolve) => {
+    form.parse(req, (error, fields, files) => {
+      resolve({ error, fields, files });
+    });
+  });
 
-      const singleFields = Object.keys(fields).reduce((acc, key) => {
-        acc[key] = fields[key]![0];
-        return acc;
-      }, {} as Record<string, string>);
-      const image = files.image && files.image[0];
+  if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'Error parsing form data', error });
+  }
 
-      const validatedData = bookValidation.safeParse({
-        ...singleFields,
-        image,
-      });
+  const singleFields = Object.keys(fields).reduce((acc, key) => {
+    acc[key] = fields[key]![0];
+    return acc;
+  }, {} as Record<string, string>);
+  const image = files.image && files.image[0];
 
-      if (!validatedData.success) {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          error: validatedData.error,
-        });
-      }
+  const validatedData = bookValidation.safeParse({
+    ...singleFields,
+    image,
+  });
 
-      const book = await booksService.create(validatedData.data);
+  if (!validatedData.success) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation error',
+      error: validatedData.error,
+    });
+  }
 
-      res.status(201).json({
-        success: true,
-        id: book.id,
-      });
-    } catch (error) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Error creating book.', error });
-    }
+  const book = await booksService.create(validatedData.data);
+
+  res.status(201).json({
+    success: true,
+    id: book.id,
   });
 };
 
-const list = async (req: Request, res: Response<GetBookResponse>) => {
-  const books = await Book.find();
+const listNotSynced = async (
+  req: ApiRequestWithQuery<ListNotSyncedParams>,
+  res: ApiResponse<ListNotSyncedReturn>
+) => {
+  const { lastSync } = req.query;
 
-  // return res.status(200).json(
-  //   books.map((book) => ({
-  //     id: book.id,
-  //     title: book.title,
-  //     author: book.author,
-  //     summary: book.summary,
-  //     chapters: book.chapters,
-  //     categories: book.categories,
-  //     purchaseLink: book.purchaseLink,
-  //     createdAt: book.createdAt,
-  //   }))
-  // );
+  try {
+    lastSync && new Date(lastSync);
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: 'lastSync must be a valid date string',
+      error,
+    });
+  }
+
+  const response = await booksService.listNotSynced({ lastSync });
+
+  return res.status(200).json({
+    success: true,
+    ...response,
+  });
 };
 
 export const booksController = {
   create,
-  list,
+  listNotSynced,
 };

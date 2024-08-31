@@ -4,4 +4,10 @@ export interface CreateBookResponse {
   id: string;
 }
 
-export type GetBookResponse = BookDocument[];
+export interface ListNotSyncedParams {
+  lastSync?: string;
+}
+export interface ListNotSyncedReturn {
+  books: BookDocument[];
+  lastSync: string;
+}

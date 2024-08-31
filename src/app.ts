@@ -5,7 +5,6 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { database } from './database';
-import { MessageResponse } from './interfaces/MessageResponse';
 import { middlewares } from './middlewares';
 import api from './router';
 
@@ -19,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 app.use(middlewares.waitForDatabase);
 
-app.get<{}, MessageResponse>('/', (req, res) => {
+app.get('/', (req, res) => {
   res.json({
     message: '🤘',
   });
