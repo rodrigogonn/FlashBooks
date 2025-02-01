@@ -1,8 +1,11 @@
 import { File } from 'formidable';
-import { BookDocument } from '../../models/book';
+import { Book } from '../../models/book';
 
 export interface CreateBookParams
-  extends Omit<BookDocument, 'id' | 'imageUrl' | 'imageRef' | 'createdAt'> {
+  extends Omit<
+    Book,
+    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt'
+  > {
   image: File;
 }
 
@@ -10,6 +13,6 @@ export interface ListNotSyncedParams {
   lastSync?: string;
 }
 export interface ListNotSyncedReturn {
-  books: BookDocument[];
+  books: Book[];
   lastSync: string;
 }

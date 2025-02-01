@@ -16,7 +16,7 @@ interface Chapter {
   content: ChapterContent[];
 }
 
-export interface BookDocument {
+export interface Book {
   id: string;
   title: string;
   author: string;
@@ -27,6 +27,7 @@ export interface BookDocument {
   categoryIds?: number[];
   purchaseLink?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const chapterSchema = new Schema(
@@ -46,25 +47,29 @@ const chapterSchema = new Schema(
   { _id: false }
 );
 
-const bookSchema = new Schema<BookDocument>({
-  title: { type: String, required: true, unique: true },
-  author: { type: String, required: true },
-  imageUrl: { type: String, required: true },
-  imageRef: { type: String, required: true },
-  description: { type: String, required: true },
-  chapters: {
-    type: [chapterSchema],
-    required: true,
-    validate: {
-      validator: function (v: any) {
-        return v && v.length > 0;
+const bookSchema = new Schema<Book>(
+  {
+    title: { type: String, required: true, unique: true },
+    author: { type: String, required: true },
+    imageUrl: { type: String, required: true },
+    imageRef: { type: String, required: true },
+    description: { type: String, required: true },
+    chapters: {
+      type: [chapterSchema],
+      required: true,
+      validate: {
+        validator: function (v: any) {
+          return v && v.length > 0;
+        },
+        message: 'A book must have at least one chapter.',
       },
-      message: 'A book must have at least one chapter.',
     },
+    categoryIds: [{ type: Number, required: true }],
+    purchaseLink: { type: String, default: '' },
   },
-  categoryIds: [{ type: Number, required: true }],
-  purchaseLink: { type: String, default: '' },
-  createdAt: { type: Date, default: Date.now },
-});
+  {
+    timestamps: true,
+  }
+);
 
-export const Book = model('Book', bookSchema);
+export const BookModel = model('Book', bookSchema);

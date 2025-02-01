@@ -1,13 +1,13 @@
-import { User } from '../../models/user';
+import { UserModel } from '../../models/user';
 import { CreateUserParams } from './types';
 
 const create = async ({ googleId, email, username }: CreateUserParams) => {
-  const userAlreadyExists = await User.exists({ email });
+  const userAlreadyExists = await UserModel.exists({ email });
   if (userAlreadyExists) {
     throw new Error('User already exists.');
   }
 
-  const response = await User.create({ googleId, email, username });
+  const response = await UserModel.create({ googleId, email, username });
 
   return {
     id: response.id,
@@ -17,7 +17,7 @@ const create = async ({ googleId, email, username }: CreateUserParams) => {
 };
 
 const findByEmail = async (email: string) => {
-  return User.findOne({ email });
+  return UserModel.findOne({ email });
 };
 
 export const usersService = {

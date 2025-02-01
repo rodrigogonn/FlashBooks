@@ -14,4 +14,19 @@ export const env = {
     APP_ID: process.env.FIREBASE_APP_ID || '',
     MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
   },
+  googleCloud: {
+    GOOGLE_APPLICATION_CREDENTIALS:
+      process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
+    pubSub: {
+      payments: {
+        TOPIC_NAME: process.env.GOOGLE_PUBSUB_PAYMENTS_TOPIC_NAME || '',
+        SUBSCRIPTION_NAME:
+          process.env.GOOGLE_PUBSUB_PAYMENTS_SUBSCRIPTION_NAME || '',
+      },
+      paymentsDlq: {
+        SUBSCRIPTION_NAME:
+          process.env.GOOGLE_PUBSUB_PAYMENTS_DLQ_SUBSCRIPTION_NAME || '',
+      },
+    },
+  },
 };

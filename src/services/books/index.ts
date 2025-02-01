@@ -1,5 +1,5 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { Book } from '../../models/book';
+import { BookModel } from '../../models/book';
 import {
   CreateBookParams,
   ListNotSyncedParams,
@@ -21,13 +21,14 @@ const create = async ({
   const imageExtension = image.originalFilename?.split('.').pop();
   const imageRef = ref(storage, `booksImages/${uuidV4()}.${imageExtension}`);
   const imageFile = await fs.readFile(image.filepath);
-  await uploadBytes(imageRef, imageFile, {
+  const imageFileArray = new Uint8Array(imageFile);
+  await uploadBytes(imageRef, imageFileArray, {
     contentType: image.mimetype || undefined,
   });
 
   const imageUrl = await getDownloadURL(imageRef);
 
-  const response = await Book.create({
+  const response = await BookModel.create({
     title,
     author,
     imageUrl,
@@ -46,7 +47,7 @@ const create = async ({
 const listNotSynced = async ({
   lastSync,
 }: ListNotSyncedParams): Promise<ListNotSyncedReturn> => {
-  const books = await Book.find(
+  const books = await BookModel.find(
     lastSync
       ? {
           createdAt: {
