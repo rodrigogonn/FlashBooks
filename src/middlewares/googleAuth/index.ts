@@ -2,14 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import { env } from '../../environment';
 import { ErrorResponse } from '../../interfaces/ErrorResponse';
 import { OAuth2Client } from 'google-auth-library';
-import path from 'path';
 
 const serviceAccount: {
   client_email: string;
-} = require(path.resolve(
-  process.cwd(),
-  env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS
-));
+} = env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS;
 
 const client = new OAuth2Client();
 
