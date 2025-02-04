@@ -15,8 +15,9 @@ export const env = {
     MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
   },
   googleCloud: {
-    GOOGLE_APPLICATION_CREDENTIALS:
-      process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
+    GOOGLE_APPLICATION_CREDENTIALS: JSON.parse(
+      process.env.GOOGLE_APPLICATION_CREDENTIALS || '{}'
+    ),
     pubSub: {
       payments: {
         TOPIC_NAME: process.env.GOOGLE_PUBSUB_PAYMENTS_TOPIC_NAME || '',

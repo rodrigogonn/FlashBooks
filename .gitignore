@@ -79,10 +79,3 @@ dist
 
 # Databases
 mongo_volume
-
-# Service account key
-service-account-key.json
-
-# Google Cloud credentials
-/config/
-

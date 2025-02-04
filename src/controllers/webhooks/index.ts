@@ -1,6 +1,7 @@
 import { env } from '../../environment';
 import { dlqEventsService } from '../../services/dlqEvents';
 import { Request, Response } from 'express';
+import { paymentsService } from '../../services/payments';
 
 const payments = async (req: Request, res: Response) => {
   try {
@@ -8,7 +9,9 @@ const payments = async (req: Request, res: Response) => {
       'utf-8'
     );
 
-    console.log(`Mensagem recebida: ${message}`);
+    const paymentEvent = JSON.parse(message);
+
+    await paymentsService.processPaymentEvent(paymentEvent);
 
     return res.status(200).send();
   } catch (error) {

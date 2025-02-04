@@ -13,7 +13,7 @@ import { Types } from 'mongoose';
 
 const authClient = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-  keyFile: env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS,
+  credentials: env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS,
 });
 const androidPublisher = google.androidpublisher({
   version: 'v3',
@@ -35,6 +35,8 @@ const getSubscriptionByPurchaseToken = async (purchaseToken: string) => {
 };
 
 const processPaymentEvent = async (event: RealTimeDeveloperNotification) => {
+  console.log('[processPaymentEvent]', event);
+
   if (event.subscriptionNotification) {
     return processSubscriptionEvent(event);
   }
@@ -78,7 +80,7 @@ const processSubscriptionEvent = async (
         expiryTime: eventTime,
       },
       $setOnInsert: {
-        userId: null,
+        userId: null, // @TODO usar o email usado na assinatura para linkar o usuário
       },
     },
     { upsert: true, new: true } // 🔹 Cria a assinatura se não existir
@@ -167,12 +169,16 @@ const syncSubscriptionWithPlayStore = async (
 ) => {
   try {
     const response = await androidPublisher.purchases.subscriptions.get({
+      // @TODO ao invés de fazer esse sync aqui, buscar o status quando recebe o evento, no webhook, para conseguir distinguir de staging e production
       packageName,
       subscriptionId,
       token: purchaseToken,
     });
 
     const data = response.data;
+
+    // @TODO usar o data.emailAddress pra linkar o usuário automáticamente
+    // @TODO usar data.purchaseType para saber se é staging ou production
     console.log('Dados da API do Google Play:', data);
 
     await SubscriptionModel.findOneAndUpdate(
