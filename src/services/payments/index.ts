@@ -5,11 +5,8 @@ import {
 } from '../../models/subscription';
 import { SubscriptionEventModel } from '../../models/subscriptionEvent';
 import { env } from '../../environment';
-import {
-  RealTimeDeveloperNotification,
-  SubscriptionNotificationType,
-} from './types/RTDN.types';
-import { Types } from 'mongoose';
+import { RealTimeDeveloperNotification } from './types/RTDN.types';
+import { usersService } from '../users';
 
 const authClient = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/androidpublisher'],
@@ -20,7 +17,7 @@ const androidPublisher = google.androidpublisher({
   auth: authClient,
 });
 
-const getUserSubscriptions = async (userId: string) => {
+const getUserActiveSubscriptions = async (userId: string) => {
   return SubscriptionModel.find({
     userId,
     status: {
@@ -51,10 +48,33 @@ const processPaymentEvent = async (event: RealTimeDeveloperNotification) => {
 const processSubscriptionEvent = async (
   event: RealTimeDeveloperNotification
 ) => {
-  const { subscriptionNotification } = event;
+  const { subscriptionNotification, packageName } = event;
   const { purchaseToken, notificationType, subscriptionId } =
     subscriptionNotification!;
   const eventTime = new Date(parseInt(event.eventTimeMillis, 10));
+
+  const { data } = await androidPublisher.purchases.subscriptions.get({
+    packageName,
+    subscriptionId,
+    token: purchaseToken,
+  });
+  const { purchaseType, emailAddress } = data;
+
+  const isTestEvent = purchaseType === 1;
+
+  if (
+    (env.IS_PRODUCTION && isTestEvent) ||
+    (!env.IS_PRODUCTION && !isTestEvent)
+  ) {
+    return;
+  }
+
+  let userId: string | null = null;
+
+  if (emailAddress) {
+    const user = await usersService.findByEmail(emailAddress);
+    userId = user?.id;
+  }
 
   const alreadyProcessed = await SubscriptionEventModel.findOne({
     subscriptionId,
@@ -75,15 +95,15 @@ const processSubscriptionEvent = async (
         packageName: event.packageName,
         productId: subscriptionId,
         purchaseToken,
-        status: mapSubscriptionStatus(notificationType),
-        startTime: eventTime,
-        expiryTime: eventTime,
+        startTime: new Date(parseInt(data.startTimeMillis || '0', 10)),
+        expiryTime: new Date(parseInt(data.expiryTimeMillis || '0', 10)),
+        status: determineSubscriptionStatus(data),
       },
       $setOnInsert: {
-        userId: null, // @TODO usar o email usado na assinatura para linkar o usuário
+        userId,
       },
     },
-    { upsert: true, new: true } // 🔹 Cria a assinatura se não existir
+    { upsert: true, new: true }
   );
 
   await SubscriptionEventModel.create({
@@ -92,20 +112,6 @@ const processSubscriptionEvent = async (
     eventTime,
     rawEventData: event,
   });
-
-  if (
-    [
-      SubscriptionNotificationType.SUBSCRIPTION_CANCELED,
-      SubscriptionNotificationType.SUBSCRIPTION_REVOKED,
-      SubscriptionNotificationType.SUBSCRIPTION_EXPIRED,
-    ].includes(notificationType)
-  ) {
-    await syncSubscriptionWithPlayStore(
-      event.packageName,
-      subscription.productId,
-      purchaseToken
-    );
-  }
 };
 
 const processVoidedPurchase = async (event: RealTimeDeveloperNotification) => {
@@ -119,14 +125,14 @@ const processVoidedPurchase = async (event: RealTimeDeveloperNotification) => {
     console.log(`Assinatura ${subscription.productId} foi revogada.`);
     subscription.status = SubscriptionStatus.REVOKED;
     await subscription.save();
-  }
 
-  await SubscriptionEventModel.create({
-    subscriptionId: subscription?._id,
-    notificationType: 999, // Código fictício para "Voided Purchase"
-    eventTime,
-    rawEventData: event,
-  });
+    await SubscriptionEventModel.create({
+      subscriptionId: subscription?._id,
+      notificationType: 999, // Código fictício para "Voided Purchase"
+      eventTime,
+      rawEventData: event,
+    });
+  }
 };
 
 const determineSubscriptionStatus = (
@@ -162,98 +168,8 @@ const determineSubscriptionStatus = (
   return SubscriptionStatus.ACTIVE;
 };
 
-const syncSubscriptionWithPlayStore = async (
-  packageName: string,
-  subscriptionId: string,
-  purchaseToken: string
-) => {
-  try {
-    const response = await androidPublisher.purchases.subscriptions.get({
-      // @TODO ao invés de fazer esse sync aqui, buscar o status quando recebe o evento, no webhook, para conseguir distinguir de staging e production
-      packageName,
-      subscriptionId,
-      token: purchaseToken,
-    });
-
-    const data = response.data;
-
-    // @TODO usar o data.emailAddress pra linkar o usuário automáticamente
-    // @TODO usar data.purchaseType para saber se é staging ou production
-    console.log('Dados da API do Google Play:', data);
-
-    await SubscriptionModel.findOneAndUpdate(
-      { purchaseToken },
-      {
-        startTime: new Date(parseInt(data.startTimeMillis || '0', 10)),
-        expiryTime: new Date(parseInt(data.expiryTimeMillis || '0', 10)),
-        status: determineSubscriptionStatus(data),
-      }
-    );
-
-    console.log(`Assinatura ${purchaseToken} sincronizada com sucesso.`);
-  } catch (error) {
-    console.error(`Erro ao sincronizar assinatura ${purchaseToken}:`, error);
-  }
-};
-
-const mapSubscriptionStatus = (
-  notificationType: number
-): SubscriptionStatus => {
-  switch (notificationType) {
-    case SubscriptionNotificationType.SUBSCRIPTION_RECOVERED:
-      return SubscriptionStatus.ACTIVE;
-    case SubscriptionNotificationType.SUBSCRIPTION_RENEWED:
-      return SubscriptionStatus.ACTIVE;
-    case SubscriptionNotificationType.SUBSCRIPTION_CANCELED:
-      return SubscriptionStatus.CANCELED;
-    case SubscriptionNotificationType.SUBSCRIPTION_PURCHASED:
-      return SubscriptionStatus.ACTIVE;
-    case SubscriptionNotificationType.SUBSCRIPTION_ON_HOLD:
-      return SubscriptionStatus.ON_HOLD;
-    case SubscriptionNotificationType.SUBSCRIPTION_IN_GRACE_PERIOD:
-      return SubscriptionStatus.GRACE_PERIOD;
-    case SubscriptionNotificationType.SUBSCRIPTION_RESTARTED:
-      return SubscriptionStatus.ACTIVE;
-    case SubscriptionNotificationType.SUBSCRIPTION_REVOKED:
-      return SubscriptionStatus.REVOKED;
-    case SubscriptionNotificationType.SUBSCRIPTION_EXPIRED:
-      return SubscriptionStatus.EXPIRED;
-    default:
-      console.warn(`Tipo de notificação desconhecido: ${notificationType}`);
-      return SubscriptionStatus.ACTIVE;
-  }
-};
-
-const linkSubscriptionToUser = async (
-  userId: Types.ObjectId,
-  purchaseToken: string
-) => {
-  const subscription = await SubscriptionModel.findOne({ purchaseToken });
-
-  if (!subscription) {
-    console.warn(`Nenhuma assinatura encontrada para o token ${purchaseToken}`);
-    return null;
-  }
-
-  if (!subscription.userId) {
-    subscription.userId = userId;
-    await subscription.save();
-    console.log(
-      `Assinatura ${subscription.productId} vinculada ao usuário ${userId}`
-    );
-  } else {
-    console.warn(
-      `Assinatura ${subscription.productId} já está vinculada a um usuário.`
-    );
-  }
-
-  return subscription;
-};
-
 export const paymentsService = {
-  getUserSubscriptions,
+  getUserActiveSubscriptions,
   getSubscriptionByPurchaseToken,
   processPaymentEvent,
-  syncSubscriptionWithPlayStore,
-  linkSubscriptionToUser,
 };

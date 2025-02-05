@@ -2,7 +2,9 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET || '',
   ADM_JWT_SECRET: process.env.ADM_JWT_SECRET || '',
   ADMIN_SECRET: process.env.ADMIN_SECRET || '',
-  IS_PRODUCTION: process.env.NODE_ENV === 'production',
+  IS_PRODUCTION: process.env.ENV === 'production',
+  IS_STAGING: process.env.ENV === 'staging',
+  IS_DEVELOPMENT: process.env.ENV === 'development',
   MONGODB_URI: process.env.MONGODB_URI || '',
   GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID || '',
   firebase: {

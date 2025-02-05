@@ -1,12 +1,15 @@
 import express from 'express';
 import { booksController } from '../../controllers/books';
-import { adminAuth } from '../../middlewares/adminAuth';
 import { errorHandler } from '../../middlewares/errorHandler';
-import { auth } from '../../middlewares/auth';
+import { middlewares } from '../../middlewares';
 
 const router = express.Router();
 
-router.get('/', auth, errorHandler(booksController.listNotSynced));
-router.post('/', adminAuth, errorHandler(booksController.create));
+router.get(
+  '/',
+  middlewares.activeSubscriptionAuth,
+  errorHandler(booksController.listNotSynced)
+);
+router.post('/', middlewares.adminAuth, errorHandler(booksController.create));
 
 export default router;
