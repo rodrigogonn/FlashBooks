@@ -50,7 +50,6 @@ const loginWithGoogle = async (
     };
   }
 
-  // @TODO adicionar expiração do token
   const token = jwt.sign(tokenPayload, env.JWT_SECRET);
 
   return res.json({ success: true, token });

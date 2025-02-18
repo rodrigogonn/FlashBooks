@@ -4,7 +4,7 @@ import { Book } from '../../models/book';
 export interface CreateBookParams
   extends Omit<
     Book,
-    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt'
+    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt' | 'deletedAt'
   > {
   image: File;
 }
@@ -14,5 +14,4 @@ export interface ListNotSyncedParams {
 }
 export interface ListNotSyncedReturn {
   books: Book[];
-  lastSync: string;
 }

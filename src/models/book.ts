@@ -26,6 +26,7 @@ export interface Book {
   chapters: Chapter[];
   categoryIds?: number[];
   purchaseLink?: string;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,10 +66,20 @@ const bookSchema = new Schema<Book>(
       },
     },
     categoryIds: [{ type: Number, required: true }],
-    purchaseLink: { type: String, default: '' },
+    purchaseLink: { type: String },
+    deletedAt: { type: Date },
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (_doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
   }
 );
 

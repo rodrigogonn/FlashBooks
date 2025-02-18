@@ -50,14 +50,14 @@ const listNotSynced = async ({
   const books = await BookModel.find(
     lastSync
       ? {
-          createdAt: {
+          updatedAt: {
             $gte: new Date(lastSync),
           },
         }
       : {}
   );
 
-  return { books, lastSync: new Date().toISOString() };
+  return { books };
 };
 
 export const booksService = {

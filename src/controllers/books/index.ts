@@ -1,13 +1,9 @@
 import { Request } from 'express';
-import {
-  CreateBookResponse,
-  ListNotSyncedParams,
-  ListNotSyncedReturn,
-} from './types';
-import { bookValidation } from './validation';
+import { CreateBookResponse } from './types';
+import { createBookSchema } from './validation';
 import formidable, { Fields, Files } from 'formidable';
 import { booksService } from '../../services/books';
-import { ApiRequestWithQuery, ApiResponse } from '../../interfaces/ApiResponse';
+import { ApiResponse } from '../../interfaces/ApiResponse';
 
 const create = async (req: Request, res: ApiResponse<CreateBookResponse>) => {
   const form = formidable({
@@ -37,7 +33,7 @@ const create = async (req: Request, res: ApiResponse<CreateBookResponse>) => {
   }, {} as Record<string, string>);
   const image = files.image && files.image[0];
 
-  const validatedData = bookValidation.safeParse({
+  const validatedData = createBookSchema.safeParse({
     ...singleFields,
     image,
   });
@@ -58,31 +54,6 @@ const create = async (req: Request, res: ApiResponse<CreateBookResponse>) => {
   });
 };
 
-const listNotSynced = async (
-  req: ApiRequestWithQuery<ListNotSyncedParams>,
-  res: ApiResponse<ListNotSyncedReturn>
-) => {
-  const { lastSync } = req.query;
-
-  try {
-    lastSync && new Date(lastSync);
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: 'lastSync must be a valid date string',
-      error,
-    });
-  }
-
-  const response = await booksService.listNotSynced({ lastSync });
-
-  return res.status(200).json({
-    success: true,
-    ...response,
-  });
-};
-
 export const booksController = {
   create,
-  listNotSynced,
 };

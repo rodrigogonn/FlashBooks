@@ -17,7 +17,7 @@ const chapterSchema = z.object({
   }),
 });
 
-export const createBookSchema = z.object({
+export const bookValidation = z.object({
   title: z.string().min(1, { message: 'Book title is required.' }),
   author: z.string().min(1, { message: 'Author name is required.' }),
   image: z
@@ -68,3 +68,5 @@ export const createBookSchema = z.object({
     .url({ message: 'Purchase link must be a valid URL.' })
     .optional(),
 });
+
+export type Book = z.infer<typeof bookValidation>;
