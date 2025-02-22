@@ -25,8 +25,13 @@ export const createBookSchema = z.object({
     .transform((file) => file as File)
     .refine(
       (file) =>
-        ['image/jpeg', 'image/png', 'image/gif'].includes(file?.mimetype!),
-      { message: 'Invalid image format. Only JPEG, PNG, and GIF are allowed.' }
+        ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(
+          file?.mimetype!
+        ),
+      {
+        message:
+          'Invalid image format. Only JPEG, PNG, GIF, and WebP are allowed.',
+      }
     ),
   description: z.string().min(1, { message: 'Book description is required.' }),
   chapters: z

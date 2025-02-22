@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 export enum SubscriptionStatus {
   ACTIVE = 'ACTIVE',
@@ -11,7 +11,8 @@ export enum SubscriptionStatus {
 }
 
 export interface Subscription {
-  userId?: Types.ObjectId;
+  id: string;
+  userId?: string;
   packageName: string;
   productId: string;
   purchaseToken: string;
@@ -36,7 +37,18 @@ const subscriptionSchema = new Schema<Subscription>(
     startTime: { type: Date, required: true },
     expiryTime: { type: Date, required: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (_doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
 );
 
 export const SubscriptionModel = model<Subscription>(
