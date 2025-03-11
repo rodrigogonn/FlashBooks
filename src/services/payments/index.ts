@@ -20,9 +20,7 @@ const androidPublisher = google.androidpublisher({
 const getUserActiveSubscriptions = async (userId: string) => {
   return SubscriptionModel.find({
     userId,
-    status: {
-      $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD],
-    },
+    status: SubscriptionStatus.ACTIVE,
     expiryTime: { $gt: new Date() },
   });
 };
@@ -149,23 +147,16 @@ const determineSubscriptionStatus = (
     return SubscriptionStatus.EXPIRED;
   }
 
-  if (data.paymentState === 0) {
-    return SubscriptionStatus.ON_HOLD;
+  switch (data.paymentState) {
+    case 0:
+      return SubscriptionStatus.ON_HOLD;
+    case 1:
+    case 2:
+    case 3:
+      return SubscriptionStatus.ACTIVE;
+    default:
+      return SubscriptionStatus.ACTIVE;
   }
-
-  if (data.paymentState === 1) {
-    return SubscriptionStatus.ACTIVE;
-  }
-
-  if (data.paymentState === 2) {
-    return SubscriptionStatus.GRACE_PERIOD;
-  }
-
-  if (data.paymentState === 3) {
-    return SubscriptionStatus.PAUSED;
-  }
-
-  return SubscriptionStatus.ACTIVE;
 };
 
 export const paymentsService = {
