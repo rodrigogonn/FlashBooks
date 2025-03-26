@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ContentType } from '../../models/book';
+import { ContentType, KeyPointType } from '../../models/book';
 import { categories } from '../../constants/categories';
 import { File } from 'formidable';
 
@@ -10,11 +10,21 @@ const paragraphSchema = z.object({
   text: z.string().min(1, { message: 'Paragraph text is required.' }),
 });
 
+const keyPointSchema = z.object({
+  type: z.literal(ContentType.KEY_POINT),
+  keyPointType: z.nativeEnum(KeyPointType),
+  text: z.string().min(1, { message: 'Key point text is required.' }),
+  context: z.string().optional(),
+  reference: z.string().optional(),
+});
+
 const chapterSchema = z.object({
   title: z.string().min(1, { message: 'Chapter title is required.' }),
-  content: z.array(z.discriminatedUnion('type', [paragraphSchema])).nonempty({
-    message: 'Chapter content cannot be empty.',
-  }),
+  content: z
+    .array(z.discriminatedUnion('type', [paragraphSchema, keyPointSchema]))
+    .nonempty({
+      message: 'Chapter content cannot be empty.',
+    }),
 });
 
 export const createBookSchema = z.object({

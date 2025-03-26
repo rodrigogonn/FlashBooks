@@ -2,6 +2,15 @@ import { Schema, model } from 'mongoose';
 
 export enum ContentType {
   PARAGRAPH = 'PARAGRAPH',
+  KEY_POINT = 'KEY_POINT',
+}
+
+export enum KeyPointType {
+  QUOTE = 'QUOTE',
+  LESSON = 'LESSON',
+  INSIGHT = 'INSIGHT',
+  MOMENT = 'MOMENT',
+  CONCEPT = 'CONCEPT',
 }
 
 interface Paragraph {
@@ -9,7 +18,15 @@ interface Paragraph {
   text: string;
 }
 
-type ChapterContent = Paragraph;
+interface KeyPoint {
+  type: ContentType.KEY_POINT;
+  keyPointType: KeyPointType;
+  text: string;
+  context?: string;
+  reference?: string;
+}
+
+type ChapterContent = Paragraph | KeyPoint;
 
 interface Chapter {
   title: string;
@@ -41,7 +58,16 @@ const chapterSchema = new Schema(
           enum: Object.values(ContentType),
           required: true,
         },
+        keyPointType: {
+          type: String,
+          enum: Object.values(KeyPointType),
+          required: function (this: any) {
+            return this.type === ContentType.KEY_POINT;
+          },
+        },
         text: { type: String, required: true },
+        context: { type: String },
+        reference: { type: String },
       },
     ],
   },
