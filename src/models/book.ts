@@ -7,10 +7,8 @@ export enum ContentType {
 
 export enum KeyPointType {
   QUOTE = 'QUOTE',
-  LESSON = 'LESSON',
   INSIGHT = 'INSIGHT',
   MOMENT = 'MOMENT',
-  CONCEPT = 'CONCEPT',
 }
 
 interface Paragraph {
@@ -22,7 +20,6 @@ interface KeyPoint {
   type: ContentType.KEY_POINT;
   keyPointType: KeyPointType;
   text: string;
-  context?: string;
   reference?: string;
 }
 

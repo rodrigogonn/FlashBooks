@@ -9,9 +9,18 @@ export interface CreateBookParams
   image: File;
 }
 
+export interface UpdateBookParams
+  extends Omit<
+    Book,
+    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt' | 'deletedAt'
+  > {
+  image?: File;
+}
+
 export interface ListNotSyncedParams {
   lastSync?: string;
 }
+
 export interface ListNotSyncedReturn {
   books: Book[];
 }

@@ -14,7 +14,6 @@ const keyPointSchema = z.object({
   type: z.literal(ContentType.KEY_POINT),
   keyPointType: z.nativeEnum(KeyPointType),
   text: z.string().min(1, { message: 'Key point text is required.' }),
-  context: z.string().optional(),
   reference: z.string().optional(),
 });
 
@@ -27,22 +26,9 @@ const chapterSchema = z.object({
     }),
 });
 
-export const createBookSchema = z.object({
+const baseBookSchema = {
   title: z.string().min(1, { message: 'Book title is required.' }),
   author: z.string().min(1, { message: 'Author name is required.' }),
-  image: z
-    .any()
-    .transform((file) => file as File)
-    .refine(
-      (file) =>
-        ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(
-          file?.mimetype!
-        ),
-      {
-        message:
-          'Invalid image format. Only JPEG, PNG, GIF, and WebP are allowed.',
-      }
-    ),
   description: z.string().min(1, { message: 'Book description is required.' }),
   chapters: z
     .string()
@@ -82,4 +68,32 @@ export const createBookSchema = z.object({
     .string()
     .url({ message: 'Purchase link must be a valid URL.' })
     .optional(),
+};
+
+const validateImage = (file?: File) => {
+  return ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(
+    file?.mimetype!
+  );
+};
+const invalidImageMessage =
+  'Invalid image format. Only JPEG, PNG, GIF, and WebP are allowed.';
+
+export const createBookSchema = z.object({
+  ...baseBookSchema,
+  image: z
+    .any()
+    .transform((file) => file as File)
+    .refine((file) => validateImage(file), {
+      message: invalidImageMessage,
+    }),
+});
+
+export const updateBookSchema = z.object({
+  ...baseBookSchema,
+  image: z
+    .any()
+    .transform((file) => file as File | undefined)
+    .refine((file) => !file || validateImage(file), {
+      message: invalidImageMessage,
+    }),
 });
