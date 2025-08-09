@@ -15,6 +15,13 @@ export interface Subscription {
   productId: string;
   purchaseToken: string;
   status: SubscriptionStatus;
+  /** The reason why a subscription was canceled or is not auto-renewing. Possible values are: 0. User canceled the subscription 1. Subscription was canceled by the system, for example because of a billing problem 2. Subscription was replaced with a new subscription 3. Subscription was canceled by the developer */
+  cancelReason?: number;
+  autoRenewing?: boolean;
+  /** The type of purchase of the subscription. This field is only set if this purchase was not made using the standard in-app billing flow. Possible values are: 0. Test (i.e. purchased from a license testing account) 1. Promo (i.e. purchased using a promo code) */
+  purchaseType?: number;
+  priceCurrencyCode?: string;
+  price?: number;
   startTime: Date;
   expiryTime: Date;
   createdAt: Date;
@@ -32,6 +39,11 @@ const subscriptionSchema = new Schema<Subscription>(
       enum: Object.values(SubscriptionStatus),
       required: true,
     },
+    cancelReason: { type: Number, required: false },
+    autoRenewing: { type: Boolean, required: false },
+    purchaseType: { type: Number, required: false },
+    priceCurrencyCode: { type: String, required: false },
+    price: { type: Number, required: false },
     startTime: { type: Date, required: true },
     expiryTime: { type: Date, required: true },
   },

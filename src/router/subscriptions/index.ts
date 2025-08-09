@@ -11,4 +11,10 @@ router.get(
   errorHandler(subscriptionsController.getActiveSubscriptions)
 );
 
+router.post(
+  '/verifyPurchase',
+  middlewares.auth,
+  errorHandler(subscriptionsController.verifyPurchase)
+);
+
 export default router;

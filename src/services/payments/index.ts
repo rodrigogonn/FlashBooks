@@ -6,12 +6,15 @@ import {
 import { SubscriptionEventModel } from '../../models/subscriptionEvent';
 import { env } from '../../environment';
 import { RealTimeDeveloperNotification } from './types/RTDN.types';
-import { usersService } from '../users';
+import { DateTime } from 'luxon';
 
-const authClient = new google.auth.GoogleAuth({
-  scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-  credentials: env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS,
-});
+const authClient = new google.auth.JWT(
+  env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS.client_email,
+  undefined,
+  env.googleCloud.GOOGLE_APPLICATION_CREDENTIALS.private_key,
+  ['https://www.googleapis.com/auth/androidpublisher']
+);
+
 const androidPublisher = google.androidpublisher({
   version: 'v3',
   auth: authClient,
@@ -20,8 +23,9 @@ const androidPublisher = google.androidpublisher({
 const getUserActiveSubscriptions = async (userId: string) => {
   return SubscriptionModel.find({
     userId,
-    status: SubscriptionStatus.ACTIVE,
-    expiryTime: { $gt: new Date() },
+    expiryTime: {
+      $gt: DateTime.now().minus({ minutes: 5 }).toJSDate(), // 1 day after expiry
+    },
   });
 };
 
@@ -40,6 +44,11 @@ const processPaymentEvent = async (event: RealTimeDeveloperNotification) => {
     return processVoidedPurchase(event);
   }
 
+  if (event.testNotification) {
+    console.log('Evento de teste recebido');
+    return;
+  }
+
   throw new Error('Evento desconhecido recebido');
 };
 
@@ -56,27 +65,20 @@ const processSubscriptionEvent = async (
     subscriptionId,
     token: purchaseToken,
   });
-  const { purchaseType, emailAddress } = data;
-
-  const isTestEvent = purchaseType === 1;
-
-  if (
-    (env.IS_PRODUCTION && isTestEvent) ||
-    (!env.IS_PRODUCTION && !isTestEvent)
-  ) {
-    return;
-  }
-
-  let userId: string | null = null;
-
-  if (emailAddress) {
-    const user = await usersService.findByEmail(emailAddress);
-    userId = user?.id;
-  }
+  const {
+    purchaseType,
+    autoRenewing,
+    priceAmountMicros,
+    priceCurrencyCode,
+    cancelReason,
+    startTimeMillis,
+    expiryTimeMillis,
+  } = data;
 
   const alreadyProcessed = await SubscriptionEventModel.findOne({
-    subscriptionId,
+    purchaseToken,
     eventTime,
+    notificationType,
   });
 
   if (alreadyProcessed) {
@@ -93,12 +95,16 @@ const processSubscriptionEvent = async (
         packageName: event.packageName,
         productId: subscriptionId,
         purchaseToken,
-        startTime: new Date(parseInt(data.startTimeMillis || '0', 10)),
-        expiryTime: new Date(parseInt(data.expiryTimeMillis || '0', 10)),
+        startTime: new Date(parseInt(startTimeMillis || '0', 10)),
+        expiryTime: new Date(parseInt(expiryTimeMillis || '0', 10)),
         status: determineSubscriptionStatus(data),
-      },
-      $setOnInsert: {
-        userId,
+        cancelReason,
+        autoRenewing,
+        purchaseType,
+        priceCurrencyCode,
+        price: priceAmountMicros
+          ? Number(priceAmountMicros) / 1000000
+          : undefined,
       },
     },
     { upsert: true, new: true }
@@ -106,9 +112,14 @@ const processSubscriptionEvent = async (
 
   await SubscriptionEventModel.create({
     subscriptionId: subscription._id,
+    purchaseToken,
     notificationType,
     eventTime,
     rawEventData: event,
+    cancelReason,
+    purchaseType,
+    priceCurrencyCode,
+    price: priceAmountMicros ? Number(priceAmountMicros) / 1000000 : undefined,
   });
 };
 
@@ -126,6 +137,7 @@ const processVoidedPurchase = async (event: RealTimeDeveloperNotification) => {
 
     await SubscriptionEventModel.create({
       subscriptionId: subscription?._id,
+      purchaseToken,
       notificationType: 999, // Código fictício para "Voided Purchase"
       eventTime,
       rawEventData: event,
@@ -159,8 +171,44 @@ const determineSubscriptionStatus = (
   }
 };
 
+const verifyPurchase = async ({
+  userId,
+  purchaseToken,
+  packageName,
+  productId,
+}: {
+  userId: string;
+  purchaseToken: string;
+  packageName: string;
+  productId: string;
+}) => {
+  const { data } = await androidPublisher.purchases.subscriptions.get({
+    packageName,
+    subscriptionId: productId,
+    token: purchaseToken,
+  });
+  const { autoRenewing, startTimeMillis, expiryTimeMillis } = data;
+  const subscription = await SubscriptionModel.findOneAndUpdate(
+    { purchaseToken },
+    {
+      $set: {
+        userId,
+        purchaseToken,
+        autoRenewing,
+        startTime: new Date(parseInt(startTimeMillis || '0', 10)),
+        expiryTime: new Date(parseInt(expiryTimeMillis || '0', 10)),
+        status: determineSubscriptionStatus(data),
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  return subscription;
+};
+
 export const paymentsService = {
   getUserActiveSubscriptions,
   getSubscriptionByPurchaseToken,
   processPaymentEvent,
+  verifyPurchase,
 };

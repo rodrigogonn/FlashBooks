@@ -1,3 +1,7 @@
+const GOOGLE_APPLICATION_CREDENTIALS = JSON.parse(
+  process.env.GOOGLE_APPLICATION_CREDENTIALS || '{}'
+);
+
 export const env = {
   JWT_SECRET: process.env.JWT_SECRET || '',
   ADM_JWT_SECRET: process.env.ADM_JWT_SECRET || '',
@@ -17,9 +21,13 @@ export const env = {
     MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
   },
   googleCloud: {
-    GOOGLE_APPLICATION_CREDENTIALS: JSON.parse(
-      process.env.GOOGLE_APPLICATION_CREDENTIALS || '{}'
-    ),
+    GOOGLE_APPLICATION_CREDENTIALS: {
+      ...GOOGLE_APPLICATION_CREDENTIALS,
+      private_key: GOOGLE_APPLICATION_CREDENTIALS.private_key.replace(
+        /\\n/g,
+        '\n'
+      ),
+    },
     pubSub: {
       payments: {
         TOPIC_NAME: process.env.GOOGLE_PUBSUB_PAYMENTS_TOPIC_NAME || '',

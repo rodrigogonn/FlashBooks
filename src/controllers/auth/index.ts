@@ -79,7 +79,11 @@ const admLogin = async (req: Request, res: ApiResponse<LoginResponse>) => {
     return res.status(400).send({ success: false, message: 'Invalid token.' });
   }
 
-  const token = jwt.sign({}, env.ADM_JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(
+    {},
+    env.ADM_JWT_SECRET,
+    env.IS_DEVELOPMENT ? undefined : { expiresIn: '8h' }
+  );
 
   return res.json({ success: true, token });
 };
