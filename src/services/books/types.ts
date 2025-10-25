@@ -4,7 +4,14 @@ import { Book } from '../../models/book';
 export interface CreateBookParams
   extends Omit<
     Book,
-    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt' | 'deletedAt'
+    | 'id'
+    | 'imageUrl'
+    | 'imageRef'
+    | 'originalImageUrl'
+    | 'originalImageRef'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'deletedAt'
   > {
   image: File;
 }
@@ -12,7 +19,14 @@ export interface CreateBookParams
 export interface UpdateBookParams
   extends Omit<
     Book,
-    'id' | 'imageUrl' | 'imageRef' | 'createdAt' | 'updatedAt' | 'deletedAt'
+    | 'id'
+    | 'imageUrl'
+    | 'imageRef'
+    | 'originalImageUrl'
+    | 'originalImageRef'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'deletedAt'
   > {
   image?: File;
 }

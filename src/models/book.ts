@@ -36,6 +36,8 @@ export interface Book {
   author: string;
   imageUrl: string;
   imageRef: string;
+  originalImageUrl?: string;
+  originalImageRef?: string;
   description: string;
   chapters: Chapter[];
   categoryIds?: number[];
@@ -77,6 +79,8 @@ const bookSchema = new Schema<Book>(
     author: { type: String, required: true },
     imageUrl: { type: String, required: true },
     imageRef: { type: String, required: true },
+    originalImageUrl: { type: String },
+    originalImageRef: { type: String },
     description: { type: String, required: true },
     chapters: {
       type: [chapterSchema],
