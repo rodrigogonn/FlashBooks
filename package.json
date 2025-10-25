@@ -7,6 +7,7 @@
     "dev": "concurrently \"yarn start:mongo\" \"yarn start:dev-server\"",
     "start:dev-server": "nodemon src/index.ts",
     "start:mongo": "node ./scripts/mongodbMemoryServer.js",
+    "migrate:images": "ts-node src/scripts/migrateBooksImages.ts",
     "lint": "eslint --fix src test",
     "test": "jest",
     "typecheck": "tsc --noEmit",
