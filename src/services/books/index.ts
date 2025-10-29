@@ -16,6 +16,7 @@ import { v4 as uuidV4 } from 'uuid';
 import fs from 'fs/promises';
 import { File } from 'formidable';
 import sharp from 'sharp';
+import { toTitleCase } from '../../utils/titleCase';
 
 const uploadImage = async (
   image: File
@@ -71,11 +72,12 @@ const create = async ({
   categoryIds,
   purchaseLink,
 }: CreateBookParams): Promise<{ id: any }> => {
+  const normalizedTitle = toTitleCase(title);
   const { imageUrl, imageRef, originalImageUrl, originalImageRef } =
     await uploadImage(image);
 
   const response = await BookModel.create({
-    title,
+    title: normalizedTitle,
     author,
     imageUrl,
     imageRef,
@@ -154,8 +156,9 @@ const update = async (
     originalImageRef = newImage.originalImageRef;
   }
 
+  const normalizedTitle = toTitleCase(title);
   await BookModel.findByIdAndUpdate(id, {
-    title,
+    title: normalizedTitle,
     author,
     imageUrl,
     imageRef,
