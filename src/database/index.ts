@@ -15,7 +15,9 @@ const connect = async () => {
     await DlqEventModel.createIndexes();
     await SubscriptionModel.createIndexes();
     await SubscriptionEventModel.createIndexes();
-  } catch {}
+  } catch (error) {
+    console.error('Failed to connect to the database', error);
+  }
 };
 
 export const database = {
