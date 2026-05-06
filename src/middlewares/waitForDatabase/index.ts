@@ -1,26 +1,26 @@
 import { NextFunction, Request, Response } from 'express';
 import { connection, ConnectionStates } from 'mongoose';
+import { database } from '../../database';
 
-export const waitForDatabase = (
+export const waitForDatabase = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  switch (connection.readyState) {
-    case ConnectionStates.connected: {
-      next();
-      break;
-    }
-    case ConnectionStates.disconnected: {
-      return res.status(503).json({
-        message: 'Service Unavailable: failed to connect to the database',
-      });
-    }
-    default: {
-      connection.once('connected', () => {
-        next();
-      });
-      break;
-    }
+  if (connection.readyState === ConnectionStates.connected) {
+    return next();
+  }
+
+  try {
+    await database.connect();
+    return next();
+  } catch (err) {
+    console.error(
+      '[db] waitForDatabase: connect failed:',
+      (err as Error).message
+    );
+    return res.status(503).json({
+      message: 'Service Unavailable: failed to connect to the database',
+    });
   }
 };

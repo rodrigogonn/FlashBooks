@@ -8,7 +8,9 @@ import { database } from './database';
 import { middlewares } from './middlewares';
 import api from './router';
 
-database.connect();
+database.connect().catch((err) => {
+  console.error('[db] initial connect failed:', (err as Error).message);
+});
 
 const app = express();
 
