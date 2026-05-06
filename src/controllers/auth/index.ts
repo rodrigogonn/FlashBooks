@@ -3,9 +3,17 @@ import jwt from 'jsonwebtoken';
 import { env } from '../../environment';
 import { googleAuthService } from '../../services/googleAuth';
 import { JwtPayload } from '../../types/jwtPayload.interface';
-import { LoginResponse, LoginWithGoogleRequestBody } from './types';
+import {
+  LoginResponse,
+  LoginWithGoogleRequestBody,
+  LoginWithPasswordRequestBody,
+  SetPasswordRequestBody,
+} from './types';
 import { usersService } from '../../services/users';
 import { ApiRequestWithBody, ApiResponse } from '../../interfaces/ApiResponse';
+import { SuccessResponse } from '../../interfaces/SuccessResponse';
+
+const MIN_PASSWORD_LENGTH = 6;
 
 const loginWithGoogle = async (
   req: ApiRequestWithBody<LoginWithGoogleRequestBody>,
@@ -55,6 +63,58 @@ const loginWithGoogle = async (
   return res.json({ success: true, token });
 };
 
+const loginWithPassword = async (
+  req: ApiRequestWithBody<LoginWithPasswordRequestBody>,
+  res: ApiResponse<LoginResponse>
+) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'email and password are required.' });
+  }
+
+  const user = await usersService.findByEmail(email);
+  const isValid =
+    !!user && (await usersService.verifyPassword(user.passwordHash, password));
+
+  if (!user || !isValid) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Invalid email or password.' });
+  }
+
+  const tokenPayload: JwtPayload = {
+    userId: user.id,
+    email: user.email,
+    username: user.username,
+  };
+
+  const token = jwt.sign(tokenPayload, env.JWT_SECRET);
+
+  return res.json({ success: true, token });
+};
+
+const setPassword = async (
+  req: ApiRequestWithBody<SetPasswordRequestBody>,
+  res: ApiResponse<SuccessResponse>
+) => {
+  const userId = req.userId!;
+  const { password } = req.body;
+
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({
+      success: false,
+      message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    });
+  }
+
+  await usersService.setPassword(userId, password);
+
+  return res.json({ success: true });
+};
+
 const admLogin = async (req: Request, res: ApiResponse<LoginResponse>) => {
   const authHeader = req.headers['authorization'];
 
@@ -90,5 +150,7 @@ const admLogin = async (req: Request, res: ApiResponse<LoginResponse>) => {
 
 export const authController = {
   loginWithGoogle,
+  loginWithPassword,
+  setPassword,
   admLogin,
 };
